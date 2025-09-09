@@ -12,7 +12,7 @@ router.get("/", async (req, res) => {
       accountId,
       apiKey,
       keyword = "",
-      page = 1, 
+      page = 1,
       per_page = 10,
       sort_by,
       order,
@@ -33,9 +33,10 @@ router.get("/", async (req, res) => {
       format_as_single_object,
     });
 
+    // Updated response: Always send total, page, and per_page
     let response = {
       subscriber_property_types: result.subscriber_property_types,
-      total: result.total || result.subscriber_property_types.length,
+      total: result.total || 0,   // Safely fallback to 0 if total is undefined
       page: pageNumber,
       per_page: pageSize,
     };
@@ -54,8 +55,6 @@ router.get("/", async (req, res) => {
       .json({ error: "Failed to fetch subscriber property types" });
   }
 });
-
-
 
 
 router.put("/properties/batch", async (req, res) => {

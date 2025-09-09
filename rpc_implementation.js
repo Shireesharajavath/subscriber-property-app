@@ -20,7 +20,6 @@ async function getApiKeyForAccount(accountId) {
   }
 }
 
-
 async function getSubscriberPropertyTypes(
   accountId,
   apiKey,
@@ -37,30 +36,15 @@ async function getSubscriberPropertyTypes(
     const auth = Buffer.from(`api:${apiKey}`).toString("base64");
     const url = "https://phoenix.api.zetaglobal.net/v1/subscriber_property_types";
 
-    console.log("Fetching subscriber property types with params:", {
-      accountId, keyword, page, per_page, sort_by, order, format_as_single_object
-    });
-
     const response = await axios.get(url, {
       headers: {
         Accept: "application/json",
         Authorization: `Basic ${auth}`
       },
-      params: {
-        page,
-        per_page,
-        sort_by,
-        order,
-        format_as_single_object,
-        keyword
-      }
+      params: { page, per_page, sort_by, order, format_as_single_object, keyword }
     });
 
-    //console.log("Raw API response:", JSON.stringify(response.data, null, 2));
-
-
     let rawData = [];
-
     if (Array.isArray(response.data)) {
       rawData = response.data;
     } else if (Array.isArray(response.data.data)) {
@@ -71,40 +55,29 @@ async function getSubscriberPropertyTypes(
       throw new Error("Unexpected API response format, no array found");
     }
 
-
     const filtered = rawData.filter(
       (item) =>
         item.prop_name !== "uid" &&
         item.prop_name !== "consent.reidentification"
     );
 
+    const totalItems = response.data.total || response.data.pagination?.total || undefined;
 
-    if (response.data.data) {
-      return {
-        ...response.data,
-        data: filtered
-      };
-    }
-
-    if (response.data.subscriber_property_types) {
-      return {
-        ...response.data,
-        subscriber_property_types: filtered
-      };
-    }
-
-    return filtered;
+    return {
+      total: totalItems,  // Ensure total count is returned
+      subscriber_property_types: filtered
+    };
 
   } catch (error) {
-    console.error(" Error fetching subscriber property types:", {
+    console.error("Error fetching subscriber property types:", {
       status: error.response?.status,
-      statusText: error.response?.statusText,
       data: error.response?.data,
       message: error.message
     });
     throw new Error("Failed to fetch subscriber property types");
   }
-}
+};
+
 
 
 async function updateSubscriberPropertyTypes({
